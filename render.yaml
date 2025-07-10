@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: instagram-login-server
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: GMAIL_USER
+        value: waemsa19@gmail.com
+      - key: GMAIL_PASS
+        value: mcci julh ypdy ngee 
